@@ -104,29 +104,6 @@ snippet labels_spec
 	  name: {{ template "${2:chartName}.${1:value_key}.fullname" . }}
 	${0}
 
-snippet service_spec
-	spec:
-	  type: "{{ .Values.$1.service.type }}"
-	  clusterIP: "{{ .Values.$1.service.clusterIP }}"
-	{{- if .Values.$1.service.externalIPs }}
-	  externalIPs:
-	{{ toYaml .Values.$1.service.externalIPs | indent 4 }}
-	{{- end }}
-	{{- if .Values.$1.service.loadBalancerIP }}
-	  loadBalancerIP: "{{ .Values.$1.service.loadBalancerIP }}"
-	{{- end }}
-	{{- if .Values.$1.service.loadBalancerSourceRanges }}
-	  loadBalancerSourceRanges:
-	{{ toYaml .Values.$1.service.loadBalancerSourceRanges | indent 4 }}
-	{{- end }}
-	{{- if and (semverCompare ">=1.7-0" .Capabilities.KubeVersion.GitVersion) (.Values.$1.service.externalTrafficPolicy) }}
-	  externalTrafficPolicy: "{{ .Values.$1.service.externalTrafficPolicy }}"
-	{{- end }}
-	{{- if and (semverCompare ">=1.7-0" .Capabilities.KubeVersion.GitVersion) (.Values.$1.service.healthCheckNodePort) }}
-	  healthCheckNodePort: {{ .Values.${1:value_key}.service.healthCheckNodePort }}
-	{{- end }}
-	${0}
-
 snippet ports_spec
 	ports:
 	${0}
@@ -505,8 +482,8 @@ snippet deploy_values
 	$1:
 	  name: ${1:value_key}
 	  image:
-		repository: 
-		tag: 
+		repository:
+		tag:
 		pullPolicy: IfNotPresent
 	  hostNetwork: false
 	  dnsPolicy: ClusterFirst
