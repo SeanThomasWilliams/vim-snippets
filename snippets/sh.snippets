@@ -1,9 +1,9 @@
 # Shebang. Executing bash via /usr/bin/env makes scripts more portable.
 snippet #!
-	#!/usr/bin/env sh
+	#!/usr/bin/env bash
 
 snippet s#!
-	#!/usr/bin/env sh
+	#!/usr/bin/env bash
 	set -eu
 
 snippet safe
@@ -16,6 +16,14 @@ snippet sbash
 	#!/usr/bin/env bash
 	set -euo pipefail
 	IFS=$'\n\t'
+
+snippet cleanup
+	TMPFILE=$(mktemp)
+
+	cleanup(){
+		rm -f "$TMPFILE"
+	}
+	trap cleanup EXIT
 
 snippet if
 	if [[ ${1:condition} ]]; then
@@ -50,57 +58,59 @@ snippet go
 	do
 		case $$2 in
 		${3:o0})
-			${0:#staments};;
+			${0:#staments}
+			;;
 		esac
 	done
 # Set SCRIPT_DIR variable to directory script is located.
 snippet sdir
 	SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+snippet shellcheck
+	# shellcheck disable=SC${1:rule}
 # getopt
 snippet getopt
-	__ScriptVersion="${1:version}"
+	usage(){
+		cat >&2 <<EOF
+	Description:
 
-	#===  FUNCTION  ================================================================
-	#         NAME:  usage
-	#  DESCRIPTION:  Display usage information.
-	#===============================================================================
-	function usage ()
-	{
-		echo "Usage :  $${0:0} [options] [--]
+	Usage: \$(basename "\${0}") [options] [--]
 
-	    Options:
-	    -h|help       Display this message
-	    -v|version    Display script version"
+	Options:
+		-d
+			Set script debug mode
+		-h
+			Show usage and exit
 
-	}    # ----------  end of function usage  ----------
+	EOF
+	}
 
-	#-----------------------------------------------------------------------
-	#  Handle command line arguments
-	#-----------------------------------------------------------------------
-
-	while getopts ":hv" opt
-	do
-	  case $opt in
-
-		h|help     )  usage; exit 0   ;;
-
-		v|version  )  echo "$${0:0} -- Version $__ScriptVersion"; exit 0   ;;
-
-		* )  echo -e "\n  Option does not exist : $OPTARG\n"
-			  usage; exit 1   ;;
-
-	  esac    # --- end of case ---
+	while getopts ":dh" opt; do
+		case "$opt" in
+			p)
+				PARAM="${OPTARG}"
+				;;
+			d)
+				DEBUG=1
+				set -x
+				;;
+			h)
+				usage
+				exit 0
+				;;
+			*)
+				echo -e "\n	Option does not exist : $OPTARG\n" >&2
+				usage
+				exit 1
+				;;
+		esac
 	done
-	shift $(($OPTIND-1))
+
+	shift "$((OPTIND-1))"
+
 snippet root
 	if [ \$(id -u) -ne 0 ]; then exec sudo \$0; fi
 
-snippet fun-sh
-	${1:function_name}() {
-		${0:#function_body}
-	}
-
 snippet fun
-	function ${1:function_name}() {
+	${1:function_name}() {
 		${0:#function_body}
 	}
